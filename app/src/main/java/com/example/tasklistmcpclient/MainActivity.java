@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -73,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
             @Override
             public void onReadyForSpeech(Bundle params) {
-                speechRecognizerTextView.setText("Listening...");
+                speechRecognizerTextView.setText(R.string.listening_speech_recognizer_text_view_text);
             }
 
             @Override
@@ -93,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onEndOfSpeech() {
-                speechRecognizerTextView.setText("Processing...");
+                speechRecognizerTextView.setText(R.string.processing_speech_recognizer_text_view_text);
             }
 
             @Override
@@ -111,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
                     speechRecognizerTextView.setText(matches.get(0)); // Display the most confident result
                 }
                 recordButton.setEnabled(true);
+                stopRecordingButton.setEnabled(false);
             }
 
             @Override
@@ -123,9 +127,43 @@ public class MainActivity extends AppCompatActivity {
                 // For future use
             }
         });
+
+        // --------------------
+        speechRecognizerTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                String currentText = s.toString(); // Get the actual string content
+
+                String defaultText = getString(R.string.default_speech_recognizer_text_view_text);
+                String listeningText = getString(R.string.listening_speech_recognizer_text_view_text);
+                String processingText = getString(R.string.processing_speech_recognizer_text_view_text);
+
+                if (!currentText.isEmpty()
+                        && !currentText.equals(defaultText)
+                        && !currentText.equals(listeningText)
+                        && !currentText.equals(processingText)
+                        && !currentText.startsWith("Error:")
+                ) {
+                    sendButton.setEnabled(true);
+                } else {
+                    sendButton.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // N/A
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // N/A
+            }
+        });
     }
 
     // --------------------
+
     final int RECORD_AUDIO_PERMISSION_CODE = 1;
     private void checkAndRequestPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
